@@ -3,9 +3,12 @@ const config = require('./config');
 const nodeCmd = require('node-cmd');
 const path = require('path');
 
+let hostAddr = config.url.match(/(http[s]?:\/\/.*?)\/groups/)[1];
+let groupPath = config.url.match(/http[s]?:\/\/.*?\/groups\/(.*)\/-\/children\.json/)[1];
+
 function sendRequest(relativePath) {
     request({
-        url: 'https://gitlab.com/groups/' + relativePath + '/-/children.json',
+        url: hostAddr + '/groups/' + relativePath + '/-/children.json',
         headers: {
             'User-Agent': config['UserAgent'],
             'cookie': config['cookie']
@@ -21,7 +24,7 @@ function sendRequest(relativePath) {
         for (var i in data) {
             let relativePath = data[i].relative_path.substr(1);
             if (data[i].type == 'project') {
-                let addr = 'mkdir ' + relativePath.replace(/\//g, path.sep) + ' && cd ' + relativePath + ' && git clone git@' + this.host +':' + relativePath + '.git'
+                let addr = 'mkdir ' + relativePath.replace(/\//g, path.sep) + ' && cd ' + relativePath + ' && git clone git@' + this.host + ':' + relativePath + '.git'
                 nodeCmd.run(addr);
                 for (var t = Date.now(); Date.now() - t <= 5000;);
             } else if (data[i].type == 'group') {
@@ -34,4 +37,5 @@ function sendRequest(relativePath) {
     })
 }
 
-sendRequest('gitlab-com/sales-team')
+sendRequest(groupPath);
+
