@@ -1,6 +1,7 @@
 const request = require('request')
 const config = require('./config');
 const nodeCmd = require('node-cmd');
+const path = require('path');
 
 function sendRequest(relativePath) {
     request({
@@ -20,8 +21,7 @@ function sendRequest(relativePath) {
         for (var i in data) {
             let relativePath = data[i].relative_path.substr(1);
             if (data[i].type == 'project') {
-                //for windows
-                let addr = 'mkdir ' + relativePath.replace(/\//g, "\\") + ' && cd ' + relativePath + ' && git clone git@code.siemens.com:' + relativePath + '.git'
+                let addr = 'mkdir ' + relativePath.replace(/\//g, path.sep) + ' && cd ' + relativePath + ' && git clone git@' + this.host +':' + relativePath + '.git'
                 nodeCmd.run(addr);
                 for (var t = Date.now(); Date.now() - t <= 5000;);
             } else if (data[i].type == 'group') {
