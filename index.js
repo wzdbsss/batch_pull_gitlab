@@ -3,9 +3,11 @@ const config = require('./config');
 const nodeCmd = require('node-cmd');
 const path = require('path');
 
+let hostAddr = config.url.match(/(http[s]?:\/\/.*?)\/groups/)[1];
+
 function sendRequest(relativePath) {
     request({
-        url: 'https://gitlab.com/groups/' + relativePath + '/-/children.json',
+        url: hostAddr + '/groups/' + relativePath + '/-/children.json',
         headers: {
             'User-Agent': config['UserAgent'],
             'cookie': config['cookie']
@@ -34,4 +36,9 @@ function sendRequest(relativePath) {
     })
 }
 
-sendRequest('gitlab-com/sales-team')
+function parseApiUrl() {
+    let groupPath = config.url.match(/http[s]?:\/\/.*?\/groups\/(.*)\/-\/children\.json/)[1];
+    sendRequest(groupPath);
+}
+
+parseApiUrl();
