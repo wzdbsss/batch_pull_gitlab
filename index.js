@@ -18,24 +18,24 @@ function sendRequest(relativePath) {
             console.log(error, body);
             return;
         }
+
         // console.log(relativePath + ' ===> ' + body);
         let data = JSON.parse(body);
 
-        for (var i in data) {
-            let relativePath = data[i].relative_path.substr(1);
-            if (data[i].type == 'project') {
+        Array.from(data).forEach(a => {
+            let relativePath = a.relative_path.substr(1);
+            if (a.type == 'project') {
                 let addr = 'mkdir ' + relativePath.replace(/\//g, path.sep) + ' && cd ' + relativePath + ' && git clone git@' + this.host + ':' + relativePath + '.git'
                 nodeCmd.run(addr);
+                console.info('current pull: ' + a.name);
                 for (var t = Date.now(); Date.now() - t <= 5000;);
-            } else if (data[i].type == 'group') {
-                sendRequest(relativePath)
+            } else if (a.type == 'group') {
+                sendRequest(relativePath);
             } else {
-                console.log(data[i])
+                console.error('can\'t process' + a);
             }
-            console.log(data[i].name);
-        }
+        });
     })
 }
 
 sendRequest(groupPath);
-
