@@ -6,9 +6,12 @@ const path = require('path');
 let hostAddr = config.url.match(/(http[s]?:\/\/.*?)\/groups/)[1];
 let groupPath = config.url.match(/http[s]?:\/\/.*?\/groups\/(.*)\/-\/children\.json/)[1];
 
-function sendRequest(relativePath) {
+function sendRequest(relativePath, page) {
+
+    let pageParameter = page === '' ? '' : '?page=' + page;
+
     request({
-        url: hostAddr + '/groups/' + relativePath + '/-/children.json',
+        url: hostAddr + '/groups/' + relativePath + '/-/children.json' + pageParameter,
         headers: {
             'User-Agent': config['UserAgent'],
             'cookie': config['cookie']
@@ -17,6 +20,11 @@ function sendRequest(relativePath) {
         if (error || response.statusCode !== 200) {
             console.log(error, body);
             return;
+        }
+
+        let nextPage = response.headers['x-next-page'];
+        if (nextPage !== "") {
+            sendRequest(relativePath, nextPage);
         }
 
         // console.log(relativePath + ' ===> ' + body);
@@ -28,9 +36,9 @@ function sendRequest(relativePath) {
                 let addr = 'mkdir ' + relativePath.replace(/\//g, path.sep) + ' && cd ' + relativePath + ' && git clone git@' + this.host + ':' + relativePath + '.git'
                 nodeCmd.run(addr);
                 console.info('current pull: ' + a.name);
-                for (var t = Date.now(); Date.now() - t <= 5000;);
+                for (var t = Date.now(); Date.now() - t <= 5000;) ;
             } else if (a.type == 'group') {
-                sendRequest(relativePath);
+                sendRequest(relativePath, '');
             } else {
                 console.error('can\'t process' + a);
             }
@@ -38,4 +46,4 @@ function sendRequest(relativePath) {
     })
 }
 
-sendRequest(groupPath);
+sendRequest(groupPath, '');
